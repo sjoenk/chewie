@@ -15,10 +15,12 @@ class CupertinoControls extends StatefulWidget {
   const CupertinoControls({
     @required this.backgroundColor,
     @required this.iconColor,
+    this.customButtonFunction,
   });
 
   final Color backgroundColor;
   final Color iconColor;
+  final Function customButtonFunction;
 
   @override
   State<StatefulWidget> createState() {
@@ -198,9 +200,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
               ),
               child: Center(
                 child: Icon(
-                  chewieController.isFullScreen
-                      ? OpenIconicIcons.fullscreenExit
-                      : OpenIconicIcons.fullscreenEnter,
+                  chewieController.isFullScreen ? OpenIconicIcons.fullscreenExit : OpenIconicIcons.fullscreenEnter,
                   color: iconColor,
                   size: 12.0,
                 ),
@@ -269,9 +269,52 @@ class _CupertinoControlsState extends State<CupertinoControls> {
                   right: buttonPadding,
                 ),
                 child: Icon(
-                  (_latestValue != null && _latestValue.volume > 0)
-                      ? Icons.volume_up
-                      : Icons.volume_off,
+                  (_latestValue != null && _latestValue.volume > 0) ? Icons.volume_up : Icons.volume_off,
+                  color: iconColor,
+                  size: 16.0,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  GestureDetector _buildCustomButton(
+    VideoPlayerController controller,
+    Color backgroundColor,
+    Color iconColor,
+    Function handler,
+    IconData icon,
+    double barHeight,
+    double buttonPadding,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        handler();
+      },
+      child: AnimatedOpacity(
+        opacity: _hideStuff ? 0.0 : 1.0,
+        duration: Duration(milliseconds: 300),
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 10.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(10.0),
+                ),
+              ),
+              child: Container(
+                height: barHeight,
+                padding: EdgeInsets.only(
+                  left: buttonPadding,
+                  right: buttonPadding,
+                ),
+                child: Icon(
+                  icon,
                   color: iconColor,
                   size: 16.0,
                 ),
@@ -298,9 +341,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
           right: 6.0,
         ),
         child: Icon(
-          controller.value.isPlaying
-              ? OpenIconicIcons.mediaPause
-              : OpenIconicIcons.mediaPlay,
+          controller.value.isPlaying ? OpenIconicIcons.mediaPause : OpenIconicIcons.mediaPlay,
           color: iconColor,
           size: 16.0,
         ),
@@ -309,8 +350,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
   }
 
   Widget _buildPosition(Color iconColor) {
-    final position =
-        _latestValue != null ? _latestValue.position : Duration(seconds: 0);
+    final position = _latestValue != null ? _latestValue.position : Duration(seconds: 0);
 
     return Padding(
       padding: EdgeInsets.only(right: 12.0),
@@ -402,13 +442,23 @@ class _CupertinoControlsState extends State<CupertinoControls> {
       child: Row(
         children: <Widget>[
           chewieController.allowFullScreen
-              ? _buildExpandButton(
-                  backgroundColor, iconColor, barHeight, buttonPadding)
+              ? _buildExpandButton(backgroundColor, iconColor, barHeight, buttonPadding)
               : Container(),
           Expanded(child: Container()),
           chewieController.allowMuting
-              ? _buildMuteButton(controller, backgroundColor, iconColor,
-                  barHeight, buttonPadding)
+              ? _buildMuteButton(controller, backgroundColor, iconColor, barHeight, buttonPadding)
+              : Container(),
+          Expanded(child: Container()),
+          chewieController.customButtonHandler != null
+              ? _buildCustomButton(
+                  controller,
+                  backgroundColor,
+                  iconColor,
+                  chewieController.customButtonHandler,
+                  chewieController.customButtonIcon,
+                  barHeight,
+                  buttonPadding,
+                )
               : Container(),
         ],
       ),
@@ -430,8 +480,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
 
     _updateState();
 
-    if ((controller.value != null && controller.value.isPlaying) ||
-        chewieController.autoPlay) {
+    if ((controller.value != null && controller.value.isPlaying) || chewieController.autoPlay) {
       _startHideTimer();
     }
 
