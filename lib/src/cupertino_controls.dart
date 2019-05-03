@@ -448,6 +448,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
           chewieController.allowMuting
               ? _buildMuteButton(controller, backgroundColor, iconColor, barHeight, buttonPadding)
               : Container(),
+          chewieController.customButtonHandler != null ? SizedBox(width: marginSize) : Container(),
           chewieController.customButtonHandler != null
               ? _buildCustomButton(
                   controller,
